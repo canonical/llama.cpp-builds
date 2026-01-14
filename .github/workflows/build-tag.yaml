@@ -28,13 +28,11 @@ jobs:
           #
           - name: amd64+cuda12
             runs-on: ubuntu-24.04
-            additional-cmake-flags: "-D GGML_CUDA=ON -D CMAKE_CUDA_ARCHITECTURES=all-major"
-            cuda-toolkit: true
+            cuda-support: true
 
           - name: arm64+cuda12
             runs-on: ubuntu-24.04-arm
-            additional-cmake-flags: "-D GGML_CUDA=ON -D CMAKE_CUDA_ARCHITECTURES=all-major"
-            cuda-toolkit: true
+            cuda-support: true
 
     runs-on: ${{ matrix.jobs.runs-on }}
     steps:
@@ -47,7 +45,7 @@ jobs:
       - name: Install dependencies
         run: |
           # Install CUDA toolkit if required
-          if [ "${{ matrix.jobs.cuda-toolkit }}" = "true" ]; then
+          if [ "${{ matrix.jobs.cuda-support }}" = "true" ]; then
             case "$(dpkg --print-architecture)" in
               amd64)
                 wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
@@ -84,10 +82,28 @@ jobs:
           # Set CUDA compiler for CUDA builds
           export CUDACXX=/usr/local/cuda/bin/nvcc
           
+          additional_cmake_flags=${{ matrix.jobs.additional-cmake-flags }}
+          
+          # Using -DCMAKE_CUDA_ARCHITECTURES=all-major started failing around January 2026
+          # See https://github.com/ggml-org/llama.cpp/issues/18447
+          # and https://github.com/xorbitsai/xllamacpp/pull/108/files
+          # Instead get supported architectures from nvcc compiler
+          
+          if [ "${{ matrix.jobs.cuda-support }}" = "true" ]; then
+            echo "=== Detecting supported GPU architectures ==="
+            $CUDACXX --list-gpu-arch
+            # Get and format compute capability list. Replace 120 with 120a for Blackwell optimizations.
+            cuda_archs=$($CUDACXX --list-gpu-arch | grep -E '^(sm|compute)_[0-9]+$' | sed -E 's/(sm|compute)_//' | sort -u | tr '\n' ';' | sed 's/;$//' | sed 's/\b120\b/120a/g')
+
+            echo "Using CUDA architectures: ${cuda_archs}"
+          
+            additional_cmake_flags="$additional_cmake_flags -D GGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=${cuda_archs}"
+          fi
+          
           # Configure and build llama.cpp
           common_flags="-D LLAMA_CURL=OFF -D GGML_NATIVE=OFF -D GGML_BACKEND_DL=ON -D GGML_CPU_ALL_VARIANTS=ON"
           artifacts_flags="-D LLAMA_BUILD_TESTS=OFF -D LLAMA_BUILD_EXAMPLES=OFF -D LLAMA_BUILD_TOOLS=ON -D LLAMA_BUILD_SERVER=ON"
-          cmake -B build $common_flags $artifacts_flags ${{ matrix.jobs.additional-cmake-flags }}
+          cmake -B build $common_flags $artifacts_flags $additional_cmake_flags
           cmake --build build --config Release -j $(nproc)
 
       - name: Pack artifacts
@@ -110,7 +126,7 @@ jobs:
           popd
           
           # Copy CUDA runtime libraries if built with CUDA
-          if [ "${{ matrix.jobs.cuda-toolkit }}" = "true" ]; then
+          if [ "${{ matrix.jobs.cuda-support }}" = "true" ]; then
             copy="cp --no-dereference -v {} archive/lib/ "
             find /usr -name "libcudart.so.*" -exec $copy \;
             find /usr -name "libcublas.so.*" -exec $copy \;
