@@ -93,7 +93,7 @@ jobs:
             echo "=== Detecting supported GPU architectures ==="
             $CUDACXX --list-gpu-arch
             # Get and format compute capability list. Replace 120 with 120a for Blackwell optimizations.
-            cuda_archs=$($CUDACXX --list-gpu-arch | grep -E '^(sm|compute)_[0-9]+$' | sed -E 's/(sm|compute)_//' | sort -u | tr '\n' ';' | sed 's/;$//' | sed 's/\b120\b/120a/g')
+            cuda_archs=$($CUDACXX --list-gpu-arch | grep -E '^(sm|compute)_[0-9]+$' | sed -E 's/(sm|compute)_//' | sort -u | awk '$1 >= 75' | tr '\n' ';' | sed 's/;$//' | sed 's/\b120\b/120a/g')
 
             echo "Using CUDA architectures: ${cuda_archs}"
           
