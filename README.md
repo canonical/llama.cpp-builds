@@ -17,7 +17,7 @@ This triggers a Github Workflow which builds and adds the artifacts one-by-one t
    
 3. Download an artifact from [releases](https://github.com/ggml-org/llama.cpp/releases)
 4. Extract it
-5. Run it as follows:
+5. Run a binary, e.g. `llama-cli` as follows:
    ```shell
    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:lib bin/llama-cli --help
    ```
