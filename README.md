@@ -2,6 +2,25 @@
 
 This repository contains a workflow to create builds of llama.cpp from the upstream source at https://github.com/ggml-org/llama.cpp
 
+## Build
+
+To trigger a new build, the maintainers should create a new [release](https://github.com/jpm-canonical/llama.cpp-builds/releases) with a tag matching exactly a tag from the llama.cpp [releases](https://github.com/ggml-org/llama.cpp/releases).
+This triggers a Github Workflow which builds and adds the artifacts one-by-one to the corresponding release.
+
+## Usage
+
+1. Install the dependency:
+   ```
+   sudo apt install libgomp1
+   ```
+   libgomp is required for detecting and loading a backend.
+   
+3. Download an artifact from [releases](https://github.com/ggml-org/llama.cpp/releases)
+4. Extract it
+5. Run it as follows:
+   ```shell
+   LD_LIBRARY_PATH=$LD_LIBRARY_PATH:lib bin/llama-cli --help
+   ```
 
 ## AMD64 architecture variants
 
