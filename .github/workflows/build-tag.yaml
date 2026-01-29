@@ -85,7 +85,7 @@ jobs:
           export CUDACXX=/usr/local/cuda/bin/nvcc
           
           # Configure and build llama.cpp
-          common_flags="-D LLAMA_CURL=OFF -D GGML_NATIVE=OFF -D GGML_BACKEND_DL=ON -D GGML_CPU_ALL_VARIANTS=ON"
+          common_flags="-D GGML_NATIVE=OFF -D GGML_BACKEND_DL=ON -D GGML_CPU_ALL_VARIANTS=ON"
           artifacts_flags="-D LLAMA_BUILD_TESTS=OFF -D LLAMA_BUILD_EXAMPLES=OFF -D LLAMA_BUILD_TOOLS=ON -D LLAMA_BUILD_SERVER=ON"
           cmake -B build $common_flags $artifacts_flags ${{ matrix.jobs.additional-cmake-flags }}
           cmake --build build --config Release -j $(nproc)
