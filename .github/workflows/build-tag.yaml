@@ -43,6 +43,7 @@ jobs:
         with:
           repository: ggml-org/llama.cpp
           ref: ${{ env.SOURCE_TAG }}
+          fetch-depth: 0
 
       - name: Install dependencies
         run: |
