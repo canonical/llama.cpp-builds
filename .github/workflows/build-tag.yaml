@@ -1,12 +1,6 @@
 name: Build
 
 on:
-  workflow_dispatch:
-    inputs:
-      source_tag:
-        description: "llama.cpp tag or commit to build (e.g. b12345+meta)"
-        required: true
-        type: string
   release:
     types: [published]
 
@@ -16,7 +10,7 @@ jobs:
       contents: write # for uploading release assets
     
     env:
-      SOURCE_TAG: ${{ github.event.release.tag_name || github.event.inputs.source_tag }}
+      SOURCE_TAG: ${{ github.event.release.tag_name }}
       ARTIFACT: "llamacpp-${{ matrix.jobs.name }}.tar.gz"
 
     strategy:
@@ -48,6 +42,7 @@ jobs:
         id: source_ref
         run: |
           source_ref="${SOURCE_TAG%%+*}"
+          source_ref="${source_ref#git.}"
           if [ -z "$source_ref" ]; then
             echo "SOURCE_TAG is empty after sanitization: '$SOURCE_TAG'"
             exit 1
