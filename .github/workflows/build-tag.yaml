@@ -1,6 +1,12 @@
 name: Build
 
 on:
+  workflow_dispatch:
+    inputs:
+      source_tag:
+        description: "llama.cpp tag or commit to build (e.g. b12345+meta)"
+        required: true
+        type: string
   release:
     types: [published]
 
@@ -10,7 +16,7 @@ jobs:
       contents: write # for uploading release assets
     
     env:
-      SOURCE_TAG: ${{ github.event.release.tag_name }}
+      SOURCE_TAG: ${{ github.event.release.tag_name || github.event.inputs.source_tag }}
       ARTIFACT: "llamacpp-${{ matrix.jobs.name }}.tar.gz"
 
     strategy:
