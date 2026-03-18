@@ -38,11 +38,21 @@ jobs:
 
     runs-on: ${{ matrix.jobs.runs-on }}
     steps:
+      - name: Sanitize source ref
+        id: source_ref
+        run: |
+          source_ref="${SOURCE_TAG%%+*}"
+          if [ -z "$source_ref" ]; then
+            echo "SOURCE_TAG is empty after sanitization: '$SOURCE_TAG'"
+            exit 1
+          fi
+          echo "value=$source_ref" >> "$GITHUB_OUTPUT"
+
       - name: Clone llama.cpp
         uses: actions/checkout@v6
         with:
           repository: ggml-org/llama.cpp
-          ref: ${{ env.SOURCE_TAG }}
+          ref: ${{ steps.source_ref.outputs.value }}
           fetch-depth: 0
 
       - name: Install dependencies
