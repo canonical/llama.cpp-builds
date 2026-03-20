@@ -36,6 +36,29 @@ jobs:
             additional-cmake-flags: "-D GGML_CUDA=ON"
             cuda-toolkit: true
 
+          #
+          # Builds with Rocm backend
+          #
+          - name: amd64+rocm
+            runs-on: ubuntu-24.04
+            additional-cmake-flags: '-DCMAKE_C_COMPILER=/opt/rocm/llvm/bin/clang 
+                                      -DCMAKE_CXX_COMPILER=/opt/rocm/llvm/bin/clang++
+                                      -DCMAKE_CXX_FLAGS="-I/opt/rocm/include"
+                                      -DCMAKE_CROSSCOMPILING=ON
+                                      -DCMAKE_BUILD_TYPE=Release
+                                      -DGPU_TARGETS="gfx1010;gfx1011;gfx1012;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;;gfx1152;gfx1153;gfx1200;gfx1201"
+                                      -DBUILD_SHARED_LIBS=ON
+                                      -DGGML_HIP=ON
+                                      -DGGML_OPENMP=OFF
+                                      -DGGML_CUDA_FORCE_CUBLAS=OFF
+                                      -DGGML_HIP_ROCWMMA_FATTN=OFF
+                                      -DLLAMA_CURL=OFF
+                                      -DGGML_STATIC=OFF
+                                      -DCMAKE_SYSTEM_NAME=Linux'
+            rocm: true
+            build-with-ninja: true
+
+          
     runs-on: ${{ matrix.jobs.runs-on }}
     steps:
       - name: Sanitize SOURCE_TAG and set target_ref output
@@ -88,20 +111,53 @@ jobs:
           sudo apt-get -qq install g++-14
           sudo snap install cmake --classic
 
+          # Install ROCm if required
+          if [ "${{ matrix.jobs.rocm }}" = "true" ]; then
+            wget https://repo.radeon.com/amdgpu-install/7.2/ubuntu/noble/amdgpu-install_7.2.70200-1_all.deb
+            sudo apt install ./amdgpu-install_7.2.70200-1_all.deb
+            sudo apt update
+            sudo apt install python3-setuptools python3-wheel
+            sudo usermod -a -G render,video $LOGNAME # Add the current user to the render and video groups
+            sudo apt install rocm
+            sudo apt install -y ninja-build git
+
       - name: Build
         run: |
+          common_flags="-D GGML_NATIVE=OFF -D GGML_BACKEND_DL=ON -D GGML_CPU_ALL_VARIANTS=ON"
+          artifacts_flags="-D LLAMA_BUILD_TESTS=OFF -D LLAMA_BUILD_EXAMPLES=OFF -D LLAMA_BUILD_TOOLS=ON -D LLAMA_BUILD_SERVER=ON"
+          
           # Set gcc-14 as the compiler
           export CC=/usr/bin/gcc-14
           export CXX=/usr/bin/g++-14
           
           # Set CUDA compiler for CUDA builds
           export CUDACXX=/usr/local/cuda/bin/nvcc
-          
-          # Configure and build llama.cpp
-          common_flags="-D GGML_NATIVE=OFF -D GGML_BACKEND_DL=ON -D GGML_CPU_ALL_VARIANTS=ON"
-          artifacts_flags="-D LLAMA_BUILD_TESTS=OFF -D LLAMA_BUILD_EXAMPLES=OFF -D LLAMA_BUILD_TOOLS=ON -D LLAMA_BUILD_SERVER=ON"
-          cmake -B build $common_flags $artifacts_flags ${{ matrix.jobs.additional-cmake-flags }}
-          cmake --build build --config Release -j $(nproc)
+          # if present, remove build directory to ensure a clean build with ninja
+          # Set ROCm environment variables for ROCm builds 
+          export HIP_PATH=/opt/rocm
+          export ROCM_PATH=/opt/rocm
+          export HIP_PLATFORM=amd
+          export HIP_CLANG_PATH=/opt/rocm/llvm/bin
+          export HIP_INCLUDE_PATH=/opt/rocm/include
+          export HIP_LIB_PATH=/opt/rocm/lib
+          export HIP_DEVICE_LIB_PATH=/opt/rocm/lib/llvm/amdgcn/bitcode
+          export PATH=/opt/rocm/bin:/opt/rocm/llvm/bin:$PATH
+          export LD_LIBRARY_PATH=/opt/rocm/lib:/opt/rocm/lib64:/opt/rocm/llvm/lib:${LD_LIBRARY_PATH:-}
+          export LIBRARY_PATH=/opt/rocm/lib:/opt/rocm/lib64:${LIBRARY_PATH:-}
+          export CPATH=/opt/rocm/include:${CPATH:-}
+          export PKG_CONFIG_PATH=/opt/rocm/lib/pkgconfig:${PKG_CONFIG_PATH:-}
+
+          # if present, remove build directory to ensure a clean build with ninja
+          if [ -d "build" ]; then
+            rm -rf build
+          fi
+          if [ "${{ matrix.jobs.build-with-ninja }}" = "true" ]; then
+            cmake -B build -G Ninja $common_flags $artifacts_flags ${{ matrix.jobs.additional-cmake-flags }}
+            cmake --build build -j $(nproc)
+          else
+            cmake -B build $common_flags $artifacts_flags ${{ matrix.jobs.additional-cmake-flags }}
+            cmake --build build --config Release -j $(nproc)
+          fi
 
       - name: Pack artifacts
         run: |
@@ -114,12 +170,29 @@ jobs:
           mv build/bin archive/
           cp -r licenses archive/
           cp LICENSE archive/licenses/
-          
+          if [ "${{ matrix.jobs.rocm }}" = "true" ]; then
+            # For ROCm builds, we need to include the ROCm runtime libraries in the artifact
+            cp -a /opt/rocm/lib/*.so* archive/bin/
+            cp -a /opt/rocm/lib64/*.so* archive/bin/
+            cp -a /opt/rocm/lib/llvm/lib/*.so* archive/bin/
+            cp -a /opt/rocm/lib/rocm_sysdeps/lib/*.so* archive/bin/
+            mkdir -p archive/bin/rocblas
+            cp -a /opt/rocm/lib/rocblas/library archive/bin/rocblas/
+            mkdir -p archive/bin/hipblaslt
+            cp -a /opt/rocm/lib/hipblaslt/library archive/bin/hipblaslt/
+            sudo apt-get install -y patchelf
+            cd archive/bin
+            for file in *.so* llama-*; do
+                [ -f "$file" ] && [ ! -L "$file" ] && patchelf --set-rpath '$ORIGIN' "$file" 2>/dev/null || true
+            done
+            cd -
+          fi
           # Workaround: llama.cpp expects ggml shared objects in the same directory as executables
           # See issue: https://github.com/ggml-org/llama.cpp/issues/17491
           pushd archive/bin/
           ln -s ../lib/libggml-cpu* ./
           ln -s ../lib/libggml-cuda* ./
+          ln -s ../lib/libggml-hip* ./
           popd
           
           # Copy CUDA runtime libraries if built with CUDA
