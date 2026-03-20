@@ -114,12 +114,12 @@ jobs:
           # Install ROCm if required
           if [ "${{ matrix.jobs.rocm }}" = "true" ]; then
             wget https://repo.radeon.com/amdgpu-install/7.2/ubuntu/noble/amdgpu-install_7.2.70200-1_all.deb
-            sudo apt install ./amdgpu-install_7.2.70200-1_all.deb
-            sudo apt update
-            sudo apt install python3-setuptools python3-wheel
+            sudo apt -qq install ./amdgpu-install_7.2.70200-1_all.deb
+            sudo apt -qq update
+            sudo apt -qq install python3-setuptools python3-wheel
             sudo usermod -a -G render,video $LOGNAME # Add the current user to the render and video groups
-            sudo apt install rocm
-            sudo apt install -y ninja-build git
+            sudo apt -qq install rocm
+            sudo apt -qq install -y ninja-build git
 
       - name: Build
         run: |
