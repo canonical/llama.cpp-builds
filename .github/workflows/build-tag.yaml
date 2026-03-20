@@ -120,6 +120,7 @@ jobs:
             sudo usermod -a -G render,video $LOGNAME # Add the current user to the render and video groups
             sudo apt -qq install rocm
             sudo apt -qq install -y ninja-build git
+          fi
 
       - name: Build
         run: |
