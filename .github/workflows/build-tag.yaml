@@ -121,6 +121,24 @@ jobs:
             sudo usermod -a -G render,video $LOGNAME # Add the current user to the render and video groups
             sudo apt -qq install rocm
             sudo apt -qq install -y ninja-build git
+            wget https://therock-nightly-tarball.s3.amazonaws.com/therock-dist-linux-gfx101X-dgpu-7.12.0a20260311.tar.gz
+            wget https://therock-nightly-tarball.s3.amazonaws.com/therock-dist-linux-gfx103X-dgpu-7.12.0a20260311.tar.gz
+            wget https://therock-nightly-tarball.s3.amazonaws.com/therock-dist-linux-gfx110X-all-7.12.0a20260311.tar.gz
+            wget https://therock-nightly-tarball.s3.amazonaws.com/therock-dist-linux-gfx120X-all-7.12.0a20260311.tar.gz
+            wget https://therock-nightly-tarball.s3.amazonaws.com/therock-dist-linux-gfx1150-7.12.0a20260311.tar.gz
+            wget https://therock-nightly-tarball.s3.amazonaws.com/therock-dist-linux-gfx1151-7.12.0a20260311.tar.gz
+            wget https://therock-nightly-tarball.s3.amazonaws.com/therock-dist-linux-gfx1152-7.12.0a20260311.tar.gz
+            wget https://therock-nightly-tarball.s3.amazonaws.com/therock-dist-linux-gfx1153-7.12.0a20260311.tar.gz
+            # Loop through every file ending in .tar.gz in the current directory
+            for archive in *.tar.gz; do
+                # Check if any files actually exist to avoid errors
+                [ -e "$archive" ] || continue
+
+                echo "Processing: $archive"
+                
+                # Run the extraction command
+                sudo tar -xzf "$archive" -C /opt/rocm --strip-components=1
+            done
           fi
 
       - name: Build
