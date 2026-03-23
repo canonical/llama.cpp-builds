@@ -40,7 +40,7 @@ jobs:
           # Builds with Rocm backend
           #
           - name: amd64+rocm
-            runs-on: amd64-noble-large-ps7-2-n-b18a99bf1314
+            runs-on: reactive-amd64-noble-medium-ps7-1-n-9bbaf80303ed
             additional-cmake-flags: '-DCMAKE_C_COMPILER=/opt/rocm/llvm/bin/clang 
                                       -DCMAKE_CXX_COMPILER=/opt/rocm/llvm/bin/clang++
                                       -DCMAKE_CXX_FLAGS="-I/opt/rocm/include"
