@@ -115,12 +115,12 @@ jobs:
           # Install ROCm if required
           if [ "${{ matrix.jobs.rocm }}" = "true" ]; then
             wget https://repo.radeon.com/amdgpu-install/7.2/ubuntu/noble/amdgpu-install_7.2.70200-1_all.deb
-            sudo apt -qq install ./amdgpu-install_7.2.70200-1_all.deb
-            sudo apt -qq update
-            sudo apt -qq install python3-setuptools python3-wheel
+            sudo apt-get -qq install ./amdgpu-install_7.2.70200-1_all.deb
+            sudo apt-get -qq update
+            sudo apt-get -qq install python3-setuptools python3-wheel
             sudo usermod -a -G render,video $LOGNAME # Add the current user to the render and video groups
-            sudo apt -qq install rocm
-            sudo apt -qq install -y ninja-build git
+            sudo apt-get -qq install rocm
+            sudo apt-get -qq install ninja-build git
             wget https://therock-nightly-tarball.s3.amazonaws.com/therock-dist-linux-gfx101X-dgpu-7.12.0a20260311.tar.gz
             wget https://therock-nightly-tarball.s3.amazonaws.com/therock-dist-linux-gfx103X-dgpu-7.12.0a20260311.tar.gz
             wget https://therock-nightly-tarball.s3.amazonaws.com/therock-dist-linux-gfx110X-all-7.12.0a20260311.tar.gz
