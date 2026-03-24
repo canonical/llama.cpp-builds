@@ -40,7 +40,7 @@ jobs:
           # Builds with Rocm backend
           #
           - name: amd64+rocm
-            runs-on: [self-hosted, linux, amd64, noble, 2xlarge-tiobe]
+            runs-on: [self-hosted, linux, amd64, noble, large-extra]
             additional-cmake-flags: '-DCMAKE_C_COMPILER=/opt/rocm/llvm/bin/clang 
                                       -DCMAKE_CXX_COMPILER=/opt/rocm/llvm/bin/clang++
                                       -DCMAKE_CXX_FLAGS="-I/opt/rocm/include"
