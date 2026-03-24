@@ -17,30 +17,32 @@ jobs:
       fail-fast: false
       matrix:
         jobs:
-          # - name: amd64
-          #   runs-on: ubuntu-24.04
+          - name: amd64
+            runs-on: ubuntu-24.04
+            additional-cmake-flags: "-D GGML_CPU_ALL_VARIANTS=ON"
 
-          # - name: arm64
-          #   runs-on: ubuntu-24.04-arm
+          - name: arm64
+            runs-on: ubuntu-24.04-arm
+            additional-cmake-flags: "-D GGML_CPU_ALL_VARIANTS=ON"
 
-          # #
-          # # Builds with CUDA backend
-          # #
-          # - name: amd64+cuda12
-          #   runs-on: ubuntu-24.04
-          #   additional-cmake-flags: "-D GGML_CUDA=ON"
-          #   cuda-toolkit: true
+          #
+          # Builds with CUDA backend
+          #
+          - name: amd64+cuda12
+            runs-on: ubuntu-24.04
+            additional-cmake-flags: "-D GGML_CUDA=ON -D GGML_CPU_ALL_VARIANTS=ON"
+            cuda-toolkit: true
 
-          # - name: arm64+cuda12
-          #   runs-on: ubuntu-24.04-arm
-          #   additional-cmake-flags: "-D GGML_CUDA=ON"
-          #   cuda-toolkit: true
+          - name: arm64+cuda12
+            runs-on: ubuntu-24.04-arm
+            additional-cmake-flags: "-D GGML_CUDA=ON -D GGML_CPU_ALL_VARIANTS=ON"
+            cuda-toolkit: true
 
           #
           # Builds with Rocm backend
           #
           - name: amd64+rocm
-            runs-on: [self-hosted, linux, amd64, noble, large-extra]
+            runs-on: ubuntu-24.04
             additional-cmake-flags: '-DCMAKE_C_COMPILER=/opt/rocm/llvm/bin/clang 
                                       -DCMAKE_CXX_COMPILER=/opt/rocm/llvm/bin/clang++
                                       -DCMAKE_CXX_FLAGS="-I/opt/rocm/include"
@@ -54,8 +56,7 @@ jobs:
                                       -DGGML_HIP_ROCWMMA_FATTN=OFF
                                       -DLLAMA_CURL=OFF
                                       -DGGML_STATIC=OFF
-                                      -DCMAKE_SYSTEM_NAME=Linux
-                                      -DCMAKE_SYSTEM_PROCESSOR=x86_64'
+                                      -DCMAKE_SYSTEM_NAME=Linux'
             rocm: true
             build-with-ninja: true
 
@@ -143,7 +144,7 @@ jobs:
 
       - name: Build
         run: |
-          common_flags="-D GGML_NATIVE=OFF -D GGML_BACKEND_DL=ON -D GGML_CPU_ALL_VARIANTS=ON"
+          common_flags="-D GGML_NATIVE=OFF -D GGML_BACKEND_DL=ON"
           artifacts_flags="-D LLAMA_BUILD_TESTS=OFF -D LLAMA_BUILD_EXAMPLES=OFF -D LLAMA_BUILD_TOOLS=ON -D LLAMA_BUILD_SERVER=ON"
           
           # Set gcc-14 as the compiler
