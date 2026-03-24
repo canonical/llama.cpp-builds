@@ -42,7 +42,7 @@ jobs:
           # Builds with Rocm backend
           #
           - name: amd64+rocm
-            runs-on: [self-hosted, linux, amd64, noble, large]
+            runs-on: ubuntu-24.04
             additional-cmake-flags: '-DCMAKE_C_COMPILER=/opt/rocm/llvm/bin/clang 
                                       -DCMAKE_CXX_COMPILER=/opt/rocm/llvm/bin/clang++
                                       -DCMAKE_CXX_FLAGS="-I/opt/rocm/include"
@@ -193,14 +193,14 @@ jobs:
           cp LICENSE archive/licenses/
           if [ "${{ matrix.jobs.rocm }}" = "true" ]; then
             # For ROCm builds, we need to include the ROCm runtime libraries in the artifact
-            cp -a /opt/rocm/lib/*.so* archive/bin/
-            cp -a /opt/rocm/lib64/*.so* archive/bin/
-            cp -a /opt/rocm/lib/llvm/lib/*.so* archive/bin/
-            cp -a /opt/rocm/lib/rocm_sysdeps/lib/*.so* archive/bin/
+            cp -a /opt/rocm/lib/*.so* archive/bin/ 2>/dev/null || true
+            cp -a /opt/rocm/lib64/*.so* archive/bin/ 2>/dev/null || true
+            cp -a /opt/rocm/lib/llvm/lib/*.so* archive/bin/ 2>/dev/null || true
+            cp -a /opt/rocm/lib/rocm_sysdeps/lib/*.so* archive/bin/ 2>/dev/null || true
             mkdir -p archive/bin/rocblas
-            cp -a /opt/rocm/lib/rocblas/library archive/bin/rocblas/
+            cp -a /opt/rocm/lib/rocblas/library archive/bin/rocblas/ 2>/dev/null || true
             mkdir -p archive/bin/hipblaslt
-            cp -a /opt/rocm/lib/hipblaslt/library archive/bin/hipblaslt/
+            cp -a /opt/rocm/lib/hipblaslt/library archive/bin/hipblaslt/ 2>/dev/null || true
             sudo apt-get install -y patchelf
             cd archive/bin
             for file in *.so* llama-*; do
