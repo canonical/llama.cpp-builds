@@ -40,7 +40,7 @@ jobs:
           # Builds with Rocm backend
           #
           - name: amd64+rocm
-            runs-on: [self-hosted, linux, amd64, xlarge, noble]
+            runs-on: ubuntu-24.04
             additional-cmake-flags: '-DCMAKE_C_COMPILER=/usr/bin/gcc-14
                                       -DCMAKE_CXX_COMPILER=/usr/bin/g++-14
                                       -DCMAKE_CXX_FLAGS="-I/home/opt/rocm/include"
