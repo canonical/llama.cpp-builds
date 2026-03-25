@@ -115,6 +115,12 @@ jobs:
 
           # Install ROCm if required
           if [ "${{ matrix.jobs.rocm }}" = "true" ]; then
+            echo "=== ROCm diagnostics: pre-install state ==="
+            if [ -d /opt/rocm ]; then
+              du -sh /opt/rocm /opt/rocm/lib /opt/rocm/lib64 /opt/rocm/lib/rocblas/library /opt/rocm/lib/hipblaslt/library 2>/dev/null || true
+            else
+              echo "/opt/rocm does not exist yet"
+            fi
             wget https://repo.radeon.com/amdgpu-install/7.2/ubuntu/noble/amdgpu-install_7.2.70200-1_all.deb
             sudo apt-get -qq install ./amdgpu-install_7.2.70200-1_all.deb
             sudo apt-get -qq update
@@ -140,6 +146,11 @@ jobs:
                 # Run the extraction command
                 sudo tar -xzf "$archive" -C /opt/rocm --strip-components=1
             done
+
+            echo "=== ROCm diagnostics: post-extraction state ==="
+            du -sh /opt/rocm /opt/rocm/lib /opt/rocm/lib64 /opt/rocm/lib/llvm/lib /opt/rocm/lib/rocm_sysdeps/lib /opt/rocm/lib/rocblas/library /opt/rocm/lib/hipblaslt/library 2>/dev/null || true
+            echo "rocblas files: $(find /opt/rocm/lib/rocblas/library -type f 2>/dev/null | wc -l || true)"
+            echo "hipblaslt files: $(find /opt/rocm/lib/hipblaslt/library -type f 2>/dev/null | wc -l || true)"
           fi
 
       - name: Build
@@ -207,6 +218,13 @@ jobs:
                 [ -f "$file" ] && [ ! -L "$file" ] && patchelf --set-rpath '$ORIGIN' "$file" 2>/dev/null || true
             done
             cd -
+
+            echo "=== ROCm diagnostics: staged archive payload ==="
+            du -sh archive/bin archive/lib archive/bin/rocblas archive/bin/hipblaslt 2>/dev/null || true
+            echo "archive symlinks: $(find archive -type l | wc -l || true)"
+            echo "archive regular files: $(find archive -type f | wc -l || true)"
+            echo "top 20 largest staged files:"
+            find archive -type f -printf '%s %p\n' | sort -nr | head -20 | awk '{printf "%.1f MB\t%s\n", $1/1024/1024, $2}'
           fi
           # Workaround: llama.cpp expects ggml shared objects in the same directory as executables
           # See issue: https://github.com/ggml-org/llama.cpp/issues/17491
@@ -226,6 +244,7 @@ jobs:
 
           tar -C archive -zcvf $ARTIFACT .
           ls -lah $ARTIFACT || true
+          echo "compressed artifact size:" && du -h $ARTIFACT || true
 
       - name: Upload artifact to release
         uses: softprops/action-gh-release@v2
