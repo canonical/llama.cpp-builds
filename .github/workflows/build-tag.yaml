@@ -63,6 +63,11 @@ jobs:
           
     runs-on: ${{ matrix.jobs.runs-on }}
     steps:
+      - uses: actions/checkout@v4
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          detached: true
       - name: Sanitize SOURCE_TAG and set target_ref output
         id: target_ref
         run: |
