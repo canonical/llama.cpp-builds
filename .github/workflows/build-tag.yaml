@@ -45,7 +45,7 @@ jobs:
             build-with-ninja: true
             additional-cmake-flags: '-DCMAKE_C_COMPILER=/usr/bin/gcc-14
                                       -DCMAKE_CXX_COMPILER=/usr/bin/g++-14
-                                      -DCMAKE_CXX_FLAGS="-I$ROCM_DIR/include"
+                                      -DCMAKE_CXX_FLAGS="-I$HOME/opt/rocm/include"
                                       -DCMAKE_CROSSCOMPILING=ON
                                       -DCMAKE_BUILD_TYPE=Release
                                       -DGPU_TARGETS="gfx1010;gfx1011;gfx1012;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1152;gfx1153;gfx1200;gfx1201"
@@ -54,7 +54,6 @@ jobs:
                                       -DGGML_OPENMP=OFF
                                       -DGGML_CUDA_FORCE_CUBLAS=OFF
                                       -DGGML_HIP_ROCWMMA_FATTN=OFF
-                                      -DLLAMA_CURL=OFF
                                       -DGGML_STATIC=OFF
                                       -DCMAKE_SYSTEM_NAME=Linux
                                       -DCMAKE_SYSTEM_PROCESSOR=x86_64'
@@ -130,8 +129,7 @@ jobs:
             wget https://therock-nightly-tarball.s3.amazonaws.com/therock-dist-linux-gfx1153-7.12.0a20260311.tar.gz
 
             # Ensure target extraction directory exists even if ROCm install did not create it.
-            ROCM_DIR="$HOME/opt/rocm"
-            sudo mkdir -p "$ROCM_DIR"
+            sudo mkdir -p "$HOME/opt/rocm"
 
             # Loop through every file ending in .tar.gz in the current directory
             for archive in *.tar.gz; do
@@ -141,7 +139,7 @@ jobs:
                 echo "Processing: $archive"
                 
                 # Run the extraction command
-                sudo tar -xzf "$archive" -C "$ROCM_DIR" --strip-components=1
+                sudo tar -xzf "$archive" -C "$HOME/opt/rocm" --strip-components=1
                 rm -f "$archive"
             done
           fi
@@ -158,19 +156,19 @@ jobs:
           # Set CUDA compiler for CUDA builds
           export CUDACXX=/usr/local/cuda/bin/nvcc
           # Set ROCm environment variables for ROCm builds
-          echo "ROCM_DIR: $ROCM_DIR"
-          export HIP_PATH="$ROCM_DIR"
-          export ROCM_PATH="$ROCM_DIR"
+          echo "ROCM_DIR: $HOME/opt/rocm"
+          export HIP_PATH="$HOME/opt/rocm"
+          export ROCM_PATH="$HOME/opt/rocm"
           export HIP_PLATFORM=amd
-          export HIP_CLANG_PATH="$ROCM_DIR/llvm/bin"
-          export HIP_INCLUDE_PATH="$ROCM_DIR/include"
-          export HIP_LIB_PATH="$ROCM_DIR/lib"
-          export HIP_DEVICE_LIB_PATH="$ROCM_DIR/lib/llvm/amdgcn/bitcode"
-          export PATH="$ROCM_DIR/bin:$ROCM_DIR/llvm/bin:$PATH"
-          export LD_LIBRARY_PATH="$ROCM_DIR/lib:$ROCM_DIR/lib64:$ROCM_DIR/llvm/lib:${LD_LIBRARY_PATH:-}"
-          export LIBRARY_PATH="$ROCM_DIR/lib:$ROCM_DIR/lib64:${LIBRARY_PATH:-}"
-          export CPATH="$ROCM_DIR/include:${CPATH:-}"
-          export PKG_CONFIG_PATH="$ROCM_DIR/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+          export HIP_CLANG_PATH="$HOME/opt/rocm/llvm/bin"
+          export HIP_INCLUDE_PATH="$HOME/opt/rocm/include"
+          export HIP_LIB_PATH="$HOME/opt/rocm/lib"
+          export HIP_DEVICE_LIB_PATH="$HOME/opt/rocm/lib/llvm/amdgcn/bitcode"
+          export PATH="$HOME/opt/rocm/bin:$HOME/opt/rocm/llvm/bin:$PATH"
+          export LD_LIBRARY_PATH="$HOME/opt/rocm/lib:$HOME/opt/rocm/lib64:$HOME/opt/rocm/llvm/lib:${LD_LIBRARY_PATH:-}"
+          export LIBRARY_PATH="$HOME/opt/rocm/lib:$HOME/opt/rocm/lib64:${LIBRARY_PATH:-}"
+          export CPATH="$HOME/opt/rocm/include:${CPATH:-}"
+          export PKG_CONFIG_PATH="$HOME/opt/rocm/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
 
           # if present, remove build directory to ensure a clean build with ninja
           if [ -d "build" ]; then
@@ -197,14 +195,14 @@ jobs:
           cp LICENSE archive/licenses/
           if [ "${{ matrix.jobs.rocm }}" = "true" ]; then
             # For ROCm builds, we need to include the ROCm runtime libraries in the artifact
-            cp -a "$ROCM_DIR/lib/"*.so* archive/bin/ 2>/dev/null || true
-            cp -a "$ROCM_DIR/lib64/"*.so* archive/bin/ 2>/dev/null || true
-            cp -a "$ROCM_DIR/lib/llvm/lib/"*.so* archive/bin/ 2>/dev/null || true
-            cp -a "$ROCM_DIR/lib/rocm_sysdeps/lib/"*.so* archive/bin/ 2>/dev/null || true
+            cp -a "$HOME/opt/rocm/lib/"*.so* archive/bin/ 2>/dev/null || true
+            cp -a "$HOME/opt/rocm/lib64/"*.so* archive/bin/ 2>/dev/null || true
+            cp -a "$HOME/opt/rocm/lib/llvm/lib/"*.so* archive/bin/ 2>/dev/null || true
+            cp -a "$HOME/opt/rocm/lib/rocm_sysdeps/lib/"*.so* archive/bin/ 2>/dev/null || true
             mkdir -p archive/bin/rocblas
-            cp -a "$ROCM_DIR/lib/rocblas/library" archive/bin/rocblas/ 2>/dev/null || true
+            cp -a "$HOME/opt/rocm/lib/rocblas/library" archive/bin/rocblas/ 2>/dev/null || true
             mkdir -p archive/bin/hipblaslt
-            cp -a "$ROCM_DIR/lib/hipblaslt/library" archive/bin/hipblaslt/ 2>/dev/null || true
+            cp -a "$HOME/opt/rocm/lib/hipblaslt/library" archive/bin/hipblaslt/ 2>/dev/null || true
             sudo apt-get install -y patchelf
             cd archive/bin
             # Set RPATH of all shared objects to $ORIGIN to ensure they can find the ROCm runtime libraries
