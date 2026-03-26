@@ -54,6 +54,7 @@ jobs:
                                       -DGGML_OPENMP=OFF
                                       -DGGML_CUDA_FORCE_CUBLAS=OFF
                                       -DGGML_HIP_ROCWMMA_FATTN=OFF
+                                      -DLLAMA_CURL=OFF
                                       -DGGML_STATIC=OFF
                                       -DCMAKE_SYSTEM_NAME=Linux
                                       -DCMAKE_SYSTEM_PROCESSOR=x86_64'
@@ -156,7 +157,8 @@ jobs:
           
           # Set CUDA compiler for CUDA builds
           export CUDACXX=/usr/local/cuda/bin/nvcc
-          # Set ROCm environment variables for ROCm builds 
+          # Set ROCm environment variables for ROCm builds
+          echo "ROCM_DIR: $ROCM_DIR"
           export HIP_PATH="$ROCM_DIR"
           export ROCM_PATH="$ROCM_DIR"
           export HIP_PLATFORM=amd
