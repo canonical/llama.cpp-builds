@@ -133,6 +133,6 @@ jobs:
           tar -C archive -zcvf $ARTIFACT .
 
       - name: Upload artifact to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe #v2.6.1 of March 16, 2026
         with:
           files: ${{ env.ARTIFACT }}
