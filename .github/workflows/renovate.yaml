@@ -1,0 +1,16 @@
+name: Renovate
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Renovate
+        uses: renovatebot/github-action@v46.1.6
+        with:
+          token: ${{ secrets.RENOVATE_TOKEN }}
