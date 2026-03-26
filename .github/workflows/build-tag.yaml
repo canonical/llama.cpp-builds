@@ -48,7 +48,7 @@ jobs:
                                       -DCMAKE_CXX_FLAGS="-I$ROCM_DIR/include"
                                       -DCMAKE_CROSSCOMPILING=ON
                                       -DCMAKE_BUILD_TYPE=Release
-                                      -DGPU_TARGETS="gfx1010;gfx1011;gfx1012;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;;gfx1152;gfx1153;gfx1200;gfx1201"
+                                      -DGPU_TARGETS="gfx1010;gfx1011;gfx1012;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1152;gfx1153;gfx1200;gfx1201"
                                       -DBUILD_SHARED_LIBS=ON
                                       -DGGML_HIP=ON
                                       -DGGML_OPENMP=OFF
