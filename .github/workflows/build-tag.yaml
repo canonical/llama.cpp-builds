@@ -28,12 +28,12 @@ jobs:
           #
           - name: amd64+cuda12
             runs-on: ubuntu-24.04
-            additional-cmake-flags: "-D GGML_CUDA=ON -D CMAKE_CUDA_ARCHITECTURES=50;52;61;70;75;80;86;89;90"
+            additional-cmake-flags: "-D GGML_CUDA=ON -D CMAKE_CUDA_ARCHITECTURES=\"50;52;61;70;75;80;86;89;90\""
             cuda-toolkit: true
 
           - name: arm64+cuda12
             runs-on: ubuntu-24.04-arm
-            additional-cmake-flags: "-D GGML_CUDA=ON -D CMAKE_CUDA_ARCHITECTURES=50;52;61;70;75;80;86;89;90"
+            additional-cmake-flags: "-D GGML_CUDA=ON -D CMAKE_CUDA_ARCHITECTURES=\"50;52;61;70;75;80;86;89;90\""
             cuda-toolkit: true
 
     runs-on: ${{ matrix.jobs.runs-on }}
