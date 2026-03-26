@@ -41,6 +41,8 @@ jobs:
           #
           - name: amd64+rocm
             runs-on: ubuntu-24.04
+            rocm: true
+            build-with-ninja: true
             additional-cmake-flags: '-DCMAKE_C_COMPILER=/usr/bin/gcc-14
                                       -DCMAKE_CXX_COMPILER=/usr/bin/g++-14
                                       -DCMAKE_CXX_FLAGS="-I/home/opt/rocm/include"
@@ -52,13 +54,9 @@ jobs:
                                       -DGGML_OPENMP=OFF
                                       -DGGML_CUDA_FORCE_CUBLAS=OFF
                                       -DGGML_HIP_ROCWMMA_FATTN=OFF
-                                      -DLLAMA_CURL=OFF
                                       -DGGML_STATIC=OFF
                                       -DCMAKE_SYSTEM_NAME=Linux
                                       -DCMAKE_SYSTEM_PROCESSOR=x86_64'
-            rocm: true
-            build-with-ninja: true
-
           
     runs-on: ${{ matrix.jobs.runs-on }}
     steps:
@@ -142,6 +140,7 @@ jobs:
                 
                 # Run the extraction command
                 sudo tar -xzf "$archive" -C /home/opt/rocm --strip-components=1
+                rm -f "$archive"
             done
           fi
 
@@ -156,7 +155,6 @@ jobs:
           
           # Set CUDA compiler for CUDA builds
           export CUDACXX=/usr/local/cuda/bin/nvcc
-          # if present, remove build directory to ensure a clean build with ninja
           # Set ROCm environment variables for ROCm builds 
           export HIP_PATH=/home/opt/rocm
           export ROCM_PATH=/home/opt/rocm
