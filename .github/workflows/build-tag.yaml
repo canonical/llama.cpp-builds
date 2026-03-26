@@ -229,7 +229,6 @@ jobs:
           fi
 
           tar -C archive -zcvf $ARTIFACT .
-          ls -lah $ARTIFACT || true
 
       - name: Upload artifact to release
         uses: softprops/action-gh-release@v2
