@@ -204,13 +204,15 @@ jobs:
             mkdir -p archive/bin/hipblaslt
             cp -a "$HOME/opt/rocm/lib/hipblaslt/library" archive/bin/hipblaslt/ 2>/dev/null || true
             sudo apt-get install -y patchelf
-            cd archive/bin
             # Set RPATH of all shared objects to $ORIGIN to ensure they can find the ROCm runtime libraries
             # included in the artifact based on relative paths, regardless of where the artifact is extracted on the target system.
-            for file in *.so* llama-*; do
-                [ -f "$file" ] && [ ! -L "$file" ] && patchelf --set-rpath '$ORIGIN' "$file" 2>/dev/null || true
+            for dir in archive/bin archive/lib; do
+                cd "$dir" || continue
+                for file in *.so* llama-*; do
+                    [ -f "$file" ] && [ ! -L "$file" ] && patchelf --set-rpath '$ORIGIN' "$file" 2>/dev/null || true
+                done
+                cd - > /dev/null
             done
-            cd -
           fi
           # Workaround: llama.cpp expects ggml shared objects in the same directory as executables
           # See issue: https://github.com/ggml-org/llama.cpp/issues/17491
