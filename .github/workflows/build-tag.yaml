@@ -220,7 +220,6 @@ jobs:
           ln -s ../lib/libggml-cpu* ./
           ln -s ../lib/libggml-cuda* ./
           ln -s ../lib/libggml-hip* ./
-          ln -s ../lib/libmtmd.so.0 ./
           popd
           
           # Copy CUDA runtime libraries if built with CUDA
