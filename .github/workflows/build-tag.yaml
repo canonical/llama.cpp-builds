@@ -33,7 +33,6 @@ jobs:
 
           #
           # Builds with CUDA backend
-          # cuda-toolkit is the apt package version suffix (cuda-toolkit-<X-Y>)
           #
           - name: amd64+cuda12.9
             runs-on: ubuntu-24.04
@@ -47,12 +46,12 @@ jobs:
 
           - name: amd64+cuda13.4
             runs-on: ubuntu-24.04
-            additional-cmake-flags: "-D GGML_CUDA=ON"
+            additional-cmake-flags: '-D GGML_CUDA=ON -D CMAKE_CUDA_ARCHITECTURES="75-real;80-real;86-real;89-real;90-real;100-real;120a-real;121a-real"'
             cuda-toolkit: "13-4"
 
           - name: arm64+cuda13.4
             runs-on: ubuntu-24.04-arm
-            additional-cmake-flags: "-D GGML_CUDA=ON"
+            additional-cmake-flags: '-D GGML_CUDA=ON -D CMAKE_CUDA_ARCHITECTURES="75-real;80-real;86-real;89-real;90-real;100-real;120a-real;121a-real"'
             cuda-toolkit: "13-4"
 
           #
