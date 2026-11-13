@@ -37,12 +37,22 @@ jobs:
           - name: amd64+cuda12.9
             runs-on: ubuntu-24.04
             additional-cmake-flags: "-D GGML_CUDA=ON"
-            cuda-toolkit: true
+            cuda-toolkit: "12-9"
 
           - name: arm64+cuda12.9
             runs-on: ubuntu-24.04-arm
             additional-cmake-flags: "-D GGML_CUDA=ON"
-            cuda-toolkit: true
+            cuda-toolkit: "12-9"
+
+          - name: amd64+cuda13.4
+            runs-on: ubuntu-24.04
+            additional-cmake-flags: '-D GGML_CUDA=ON -D CMAKE_CUDA_ARCHITECTURES="75-real;80-real;86-real;89-real;90-real;100-real;120a-real;121a-real"'
+            cuda-toolkit: "13-4"
+
+          - name: arm64+cuda13.4
+            runs-on: ubuntu-24.04-arm
+            additional-cmake-flags: '-D GGML_CUDA=ON -D CMAKE_CUDA_ARCHITECTURES="75-real;80-real;86-real;89-real;90-real;100-real;120a-real;121a-real"'
+            cuda-toolkit: "13-4"
 
           #
           # Builds with Rocm backend
@@ -90,7 +100,7 @@ jobs:
       - name: Install dependencies
         run: |
           # Install CUDA toolkit if required
-          if [ "${{ matrix.jobs.cuda-toolkit }}" = "true" ]; then
+          if [ -n "${{ matrix.jobs.cuda-toolkit }}" ]; then
             case "$(dpkg --print-architecture)" in
               amd64)
                 wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
@@ -106,7 +116,7 @@ jobs:
           
             sudo dpkg -i cuda-keyring_1.1-1_all.deb
             sudo apt-get -qq update
-            sudo apt-get -qq install cuda-toolkit-12-9
+            sudo apt-get -qq install cuda-toolkit-${{ matrix.jobs.cuda-toolkit }}
           else
             sudo apt-get -qq update
           fi
@@ -239,7 +249,7 @@ jobs:
           fi
           
           # Copy CUDA runtime libraries if built with CUDA
-          if [ "${{ matrix.jobs.cuda-toolkit }}" = "true" ]; then
+          if [ -n "${{ matrix.jobs.cuda-toolkit }}" ]; then
             copy="cp --no-dereference -v {} archive/lib/ "
             find /usr -name "libcudart.so.*" -exec $copy \;
             find /usr -name "libcublas.so.*" -exec $copy \;
