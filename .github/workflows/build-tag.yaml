@@ -64,7 +64,6 @@ jobs:
             additional-cmake-flags: '-DCMAKE_C_COMPILER=/usr/bin/gcc-14
                                       -DCMAKE_CXX_COMPILER=/usr/bin/g++-14
                                       -DCMAKE_CXX_FLAGS="-I$HOME/opt/rocm/include"
-                                      -DCMAKE_CROSSCOMPILING=ON
                                       -DCMAKE_BUILD_TYPE=Release
                                       -DGPU_TARGETS="gfx1010;gfx1011;gfx1012;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1152;gfx1153;gfx1200;gfx1201"
                                       -DBUILD_SHARED_LIBS=ON
@@ -73,8 +72,7 @@ jobs:
                                       -DGGML_CUDA_FORCE_CUBLAS=OFF
                                       -DGGML_HIP_ROCWMMA_FATTN=OFF
                                       -DGGML_STATIC=OFF
-                                      -DCMAKE_SYSTEM_NAME=Linux
-                                      -DCMAKE_SYSTEM_PROCESSOR=x86_64'
+                                      -DLLAMA_CURL=OFF'
           
     runs-on: ${{ matrix.jobs.runs-on }}
     steps:
@@ -237,12 +235,16 @@ jobs:
             mkdir -p archive/bin/hipblaslt
             cp -a "$HOME/opt/rocm/lib/hipblaslt/library" archive/bin/hipblaslt/ 2>/dev/null || true
             sudo apt-get install -y patchelf
-            # Set RPATH of all shared objects to $ORIGIN to ensure they can find the ROCm runtime libraries
-            # included in the artifact based on relative paths, regardless of where the artifact is extracted on the target system.
+            # Allow executables and libraries in either directory to find their bundled dependencies.
             for dir in archive/bin archive/lib; do
                 cd "$dir" || continue
+                if [ "$dir" = archive/bin ]; then
+                    rpath='$ORIGIN:$ORIGIN/../lib'
+                else
+                    rpath='$ORIGIN:$ORIGIN/../bin'
+                fi
                 for file in *.so* llama-*; do
-                    [ -f "$file" ] && [ ! -L "$file" ] && patchelf --set-rpath '$ORIGIN' "$file" 2>/dev/null || true
+                    [ -f "$file" ] && [ ! -L "$file" ] && patchelf --set-rpath "$rpath" "$file" 2>/dev/null || true
                 done
                 cd - > /dev/null
             done
